@@ -1,13 +1,13 @@
 # EQUA By Studio NØSa
 
 ![License](https://img.shields.io/badge/license-GPLv3-blue.svg)
-![Version](https://img.shields.io/badge/version-0.1.0-green.svg)
+![Version](https://img.shields.io/badge/version-0.2.0-green.svg)
 ![Version](https://img.shields.io/badge/Language-Python3.13-yellow.svg)
 
 ## 概要
 EQUAはStudio NØSaがお届けするプロダクトの第一弾でありNEXAグループ(NEXA,EQUA,ZENO)の第一弾として、公開したPythonを使用したWebブラウザです。
 
-タブブラウジング、ブックマーク、履歴、簡易広告ブロッカー、アップデート確認など、ブラウザとして使うときに十分な機能を提供しています。
+タブブラ/Project-EQUA-Portableウジング、ブックマーク、履歴、簡易広告ブロッカー、アップデート確認など、ブラウザとして使うときに十分な機能を提供しています。
 
 (Equilibrium + Quality)NEXA(開発中)から隠し機能などを削除し、バランスを追求した標準版。
 
@@ -29,5 +29,5 @@ EQUAはStudio NØSaがお届けするプロダクトの第一弾でありNEXAグ
 ## 質問がありましたら
 公式サイトにある[Support](https://studio-nosa.live/support.html)をご覧ください
 
-## バグ情報
-急ピッチでEQUAをポータブル化したため、アップデートの確認等の機能が正常に動作しません。更新情報が出現しても更新しないでください。
+## アップデートについて
+アップデート機能が0.2.0ポータブル版から対応しました。新しいバージョンが利用可能な場合は通知が表示され、指示に従ってアップデートファイルをダウンロードできます。

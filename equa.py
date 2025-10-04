@@ -30,7 +30,7 @@ from PyQt6.QtGui import QIcon, QCloseEvent, QAction, QDesktopServices, QPixmap, 
 # アプリケーションのバージョンとGitHubリポジトリ情報
 __version__ = "0.2.0"
 GITHUB_REPO_OWNER = "Keychrom"
-GITHUB_REPO_NAME = "Project-EQUA"
+GITHUB_REPO_NAME = "Project-EQUA-Portable"
 
 # --- ポータブル化対応 ---
 def get_portable_base_path():
@@ -197,7 +197,7 @@ class UpdateCheckThread(QThread):
                         asset_pattern = None
                         if sys.platform == 'win32':
                             # ポータブル版のzipファイルを探す
-                            asset_pattern = re.compile(r'EQUA_portable_.*\.zip$', re.IGNORECASE)
+                            asset_pattern = re.compile(r'EQUA-Portable\.exe$', re.IGNORECASE)
                         # 他のOS用のアセットも必要ならここに追加
 
                         for asset in latest_release.get('assets', []):
@@ -3273,8 +3273,7 @@ class BrowserWindow(QMainWindow):
         if success:
             QMessageBox.information(self, "ダウンロード完了",
                                     "アップデートファイルのダウンロードが完了しました。\n\n"
-                                    "アプリケーションを終了し、ダウンロードしたzipファイルを展開して、"
-                                    "既存のファイルを上書きしてください。\n\n"
+                                    "現在のアプリケーションを終了し、ダウンロードした新しい 'EQUA-Portable.exe' を実行してください。\n\n"
                                     "ダウンロード先フォルダを開きます。")
             download_folder = os.path.dirname(downloaded_path)
             QDesktopServices.openUrl(QUrl.fromLocalFile(download_folder))
