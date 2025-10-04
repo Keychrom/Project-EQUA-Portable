@@ -19,8 +19,8 @@ import qtawesome as qta # Font Awesomeアイコンを使用するためのライ
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QToolBar, QLineEdit, QTabWidget, QInputDialog, QGroupBox, QStyle, QProxyStyle, QStyleOptionTab, QStyleFactory,
     QWidget, QSizePolicy, QHBoxLayout, QPushButton, QListWidget, QDialog, QVBoxLayout, QMessageBox,
-    QLabel, QListWidgetItem, QMenu, QFileDialog, QProgressBar, QScrollArea, QColorDialog, QComboBox, 
-    QStackedWidget, QCheckBox 
+    QLabel, QListWidgetItem, QMenu, QFileDialog, QProgressBar, QScrollArea, QColorDialog, QComboBox,
+    QStackedWidget, QCheckBox
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView # ウェブページを表示するためのウィジェット
 from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile, QWebEngineUrlRequestInterceptor, QWebEnginePage
@@ -28,9 +28,9 @@ from PyQt6.QtCore import QUrl, QSettings, Qt, QStandardPaths, QSize, QThread, py
 from PyQt6.QtGui import QIcon, QCloseEvent, QAction, QDesktopServices, QPixmap, QColor
 
 # アプリケーションのバージョンとGitHubリポジトリ情報
-__version__ = "0.1.0"  # TODO: 現在のアプリケーションのバージョンに合わせてください
-GITHUB_REPO_OWNER = "Keychrom"  # TODO: あなたのGitHubユーザー名またはオーガニゼーション名に置き換えてください
-GITHUB_REPO_NAME = "Project-EQUA"  # TODO: あなたのGitHubリポジトリ名に置き換えてください
+__version__ = "0.2.0"
+GITHUB_REPO_OWNER = "Keychrom"
+GITHUB_REPO_NAME = "Project-EQUA"
 
 # --- ポータブル化対応 ---
 def get_portable_base_path():
@@ -43,17 +43,24 @@ def get_portable_base_path():
 
 PORTABLE_BASE_PATH = get_portable_base_path()
 
+# --- 定数 ---
+SETTINGS_FILE_NAME = "settings.ini"
+DATA_DIR_NAME = "data"
+DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
+
 # PyInstallerで作成されたexeファイル内でリソースファイル（アイコンなど）のパスを解決するためのヘルパー関数
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    # インストーラー(pyraxis.py)の構成に合わせ、リソースは'app'サブディレクトリにあると想定
-    if hasattr(sys, '_MEIPASS'):
-        # PyInstallerは一時フォルダを作成し、そのパスを_MEIPASSに格納します
-        base_path = os.path.join(sys._MEIPASS, 'app')
+    """ Get absolute path to resource, works for dev and for PyInstaller/Nuitka """
+    # PyInstaller/Nuitkaでバンドルされているかチェック
+    if getattr(sys, 'frozen', False):
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstallerは一時フォルダを作成し、そのパスを_MEIPASSに格納します
+            base_path = os.path.join(sys._MEIPASS, 'app')
+        else:
+            base_path = os.path.join(sys.executable, 'app')
     else:
         # 開発環境（.pyを直接実行）の場合
         base_path = os.path.join(os.path.abspath("."), 'app')
-
     return os.path.join(base_path, relative_path)
 
 # 開いているウィンドウの参照を保持するグローバルリスト
@@ -61,11 +68,6 @@ def resource_path(relative_path):
 windows = []
 # 永続プロファイルを保持するためのグローバル変数
 persistent_profile = None # Cookieやキャッシュなどを保持するプロファイル
-
-# --- 定数 ---
-SETTINGS_FILE_NAME = "settings.ini"
-DATA_DIR_NAME = "data"
-DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
 
 # 広告ブロック用リクエストインターセプター
 class AdBlockInterceptor(QWebEngineUrlRequestInterceptor):
@@ -211,6 +213,20 @@ class UpdateCheckThread(QThread):
             # エラーメッセージに、どのURLで失敗したかを含める
             url_for_error = f"https://api.github.com/repos/{self.owner}/{self.repo}/releases"
             self.finished.emit(False, "", "", "", f"{e}\nURL: {url_for_error}")
+
+# --- テーマ関連の定数 ---
+THEME_COLORS = {
+    "ダーク": {
+        "icon_color": "#D8DEE9",
+        "icon_active_color": "#88C0D0",
+        "progress_bar_color": "#88C0D0",
+    },
+    "ライト": {
+        "icon_color": "#4C566A",
+        "icon_active_color": "#5E81AC",
+        "progress_bar_color": "#81A1C1",
+    }
+}
 
 # ダークテーマのスタイルシート (Nord)
 DARK_STYLESHEET = """ 
@@ -1249,7 +1265,7 @@ class SettingsDialog(QDialog):
         layout.setSpacing(15)
         layout.setContentsMargins(40, 40, 40, 40) # ページ内の余白を調整
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
-        link_color = self.parent.theme_colors['link_color']
+        link_color = self.parent.theme_colors['icon_active_color']
         
         # アプリアイコン
         app_icon_label = QLabel()
@@ -1910,7 +1926,7 @@ class UpdateDownloadDialog(QDialog):
         self.setFixedSize(400, 120)
         # UIの構築
         layout = QVBoxLayout(self)
-        self.label = QLabel("新しいバージョンをダウンロードしています...")
+        self.label = QLabel("アップデートファイルをダウンロードしています...")
         self.progress_bar = QProgressBar()
         self.progress_label = QLabel("0 MB / 0 MB")
         self.cancel_button = QPushButton("キャンセル")
@@ -2085,10 +2101,8 @@ class BrowserWindow(QMainWindow):
         self.update_download_dialog = None
         # 開発者ツールウィンドウを管理するための辞書
         self.dev_tools_windows = {}
-        self.update_thread = None
-        self.fullscreen_request = None # 全画面リクエストを保持
 
-        # SPA遷移用の擬似プログレスバータイマー
+        # SPA遷移用の擬似プログレスバータイマーと関連変数
         self._spa_progress_timer = QTimer(self)
         self._spa_progress_timer.setInterval(50)  # 50msごとに更新
         self._spa_progress_timer.timeout.connect(self._update_spa_progress)
@@ -2227,7 +2241,7 @@ class BrowserWindow(QMainWindow):
             private_window_action = QAction(qta.icon('fa5s.user-secret'), "新しいプライベートウィンドウを開く", self)
             private_window_action.triggered.connect(self.open_private_window)
             main_menu.addAction(private_window_action)
-        
+
         main_menu.addSeparator()
 
         # ブックマークアクション
@@ -2507,7 +2521,7 @@ class BrowserWindow(QMainWindow):
         if self.tabs.count() < 2: # 最後のタブを閉じるときはウィンドウごと閉じる
             self.close()
             return
-        
+
         self.tabs.removeTab(index)
         # QWebEngineViewを明示的に削除し、音声再生などを停止させる
         widget_to_close.deleteLater()
@@ -2948,60 +2962,40 @@ class BrowserWindow(QMainWindow):
                 QMessageBox.critical(self, "エラー", f"インポート中にエラーが発生しました:\n{e}")
 
     def handle_download_request(self, download):
-        """ダウンロード要求を処理するメソッド"""
-        # MIMEタイプとファイル名からPDFかどうかを判定
-        mime_type = download.mimeType().lower()
-        file_name = download.suggestedFileName().lower()
-
-        # PDFファイルの場合はダウンロードせずにビューアで開く
-        # Content-Dispositionヘッダでダウンロードが強制される場合でも、ここでインターセプトして表示に切り替える
-        if 'application/pdf' in mime_type or file_name.endswith('.pdf'):
-            # 新しいタブを作成し、ダウンロードURLをロードする
-            self.add_new_tab(download.url(), label=download.suggestedFileName())
-            # ダウンロードをキャンセルし、ダウンロードマネージャーに表示しない
-            download.cancel()
-            return
-
-        # 設定からダウンロードパスを取得。なければデフォルトのダウンロードフォルダを使用。
+        """
+        ウェブエンジンからのダウンロード要求を処理し、保存ダイアログを開きます。
+        """
+        suggested_filename = download.suggestedFileName()
+        
         default_download_path = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DownloadLocation)
         download_dir = self.settings.value("download_path", default_download_path)
         
         try:
-            # 指定されたフォルダが存在しない場合は作成
             os.makedirs(download_dir, exist_ok=True)
         except OSError:
-            # フォルダ作成に失敗した場合、フォールバックとしてデフォルトのダウンロードフォルダを使用
             QMessageBox.warning(self, "ダウンロードエラー", 
                                 f"指定されたダウンロード先フォルダにアクセスできませんでした:\n{download_dir}\n\n"
                                 "デフォルトのダウンロードフォルダを使用します。")
             download_dir = default_download_path
-            # デフォルトフォルダもなければ作成（通常は成功するはず）
             os.makedirs(download_dir, exist_ok=True)
             
-        suggested_path = os.path.join(download_dir, download.suggestedFileName())
-
-        # ファイル保存ダイアログを表示
+        suggested_path = os.path.join(download_dir, suggested_filename)
         file_path, _ = QFileDialog.getSaveFileName(self, "ファイルを保存", suggested_path)
 
-        if file_path: # ユーザーがキャンセルしなかった場合
-            # PyQt6のバージョンによってAPIが異なるため、hasattrで分岐
+        if file_path:
             if hasattr(download, 'setPath'):
-                # QWebEngineDownloadItem (新しいAPI)
                 download.setPath(file_path)
             else:
-                # QWebEngineDownloadRequest (古いAPI)
                 directory = os.path.dirname(file_path)
                 filename = os.path.basename(file_path)
                 download.setDownloadDirectory(directory)
                 download.setDownloadFileName(filename)
 
             download.accept()
-            # ダウンロードマネージャーに項目を追加して表示
             self.download_manager.add_download_item(download)
             self.download_manager.show()
             self.download_manager.raise_()
         else:
-            # ユーザーがダイアログをキャンセルした場合、ダウンロードもキャンセルする
             download.cancel()
 
     def change_theme(self, theme_name):
@@ -3114,31 +3108,19 @@ class BrowserWindow(QMainWindow):
 
     def update_theme_colors(self):
         """現在のテーマ設定に基づいて色の辞書を更新する"""
-        theme = self.settings.value("theme", "自動") # 設定からテーマ名を取得
-        if theme == "自動":
-            theme = get_windows_theme()
-        if theme == "ライト":
-            self.theme_colors = {
-                "icon_color": "#4C566A",
-                "icon_active_color": "#5E81AC",
-                "text_color": "#2E3440",
-                "link_color": "#5E81AC",
-                "progress_bar_color": "#81A1C1",
-                "url_bar_bg_color": "#FFFFFF",
-                "url_bar_border_color": "#D8DEE9",
-                "url_bar_border_focus_color": "#5E81AC",
-            }
-        else:  # ダーク
-            self.theme_colors = {
-                "icon_color": "#D8DEE9",
-                "icon_active_color": "#88C0D0",
-                "text_color": "#D8DEE9",
-                "link_color": "#88C0D0",
-                "progress_bar_color": "#88C0D0",
-                "url_bar_bg_color": "#2E3440",
-                "url_bar_border_color": "#4C566A",
-                "url_bar_border_focus_color": "#88C0D0",
-            }
+        theme_setting = self.settings.value("theme", "自動")
+        actual_theme = theme_setting
+        if theme_setting == "自動":
+            actual_theme = get_windows_theme()
+        
+        self.theme_colors = THEME_COLORS.get(actual_theme, THEME_COLORS["ダーク"])
+        
+        # スタイルシートでカバーできない動的な色も設定
+        self.theme_colors["link_color"] = "#5E81AC" if actual_theme == "ライト" else "#88C0D0"
+        self.theme_colors["url_bar_bg_color"] = "#FFFFFF" if actual_theme == "ライト" else "#2E3440"
+        self.theme_colors["text_color"] = "#2E3440" if actual_theme == "ライト" else "#D8DEE9"
+        self.theme_colors["url_bar_border_color"] = "#D8DEE9" if actual_theme == "ライト" else "#4C566A"
+        self.theme_colors["url_bar_border_focus_color"] = "#5E81AC" if actual_theme == "ライト" else "#88C0D0"
 
     def update_theme_elements(self):
         """テーマ変更時に、スタイルシートだけでは変わらない要素（アイコンなど）を更新する"""
@@ -3155,7 +3137,8 @@ class BrowserWindow(QMainWindow):
         # メニュー内のアイコン
         if hasattr(self, 'open_file_action'):
             self.open_file_action.setIcon(qta.icon('fa5s.folder-open', color=icon_color))
-        self.update_action.setIcon(qta.icon('fa5s.sync-alt', color=icon_color))
+        if hasattr(self, 'update_action'):
+            self.update_action.setIcon(qta.icon('fa5s.sync-alt', color=icon_color))
 
         # 全てのタブのアイコンを更新
         for i in range(self.tabs.count()):
@@ -3164,12 +3147,6 @@ class BrowserWindow(QMainWindow):
         # 設定ダイアログが開いていれば、そちらも更新
         if self.settings_dialog:
             self.settings_dialog.update_theme_elements()
-
-        # プログレスバーの表示を更新
-        current_browser = self.tabs.currentWidget()
-        if current_browser:
-            progress = current_browser.property("loadProgress") or 100
-            self.update_progress_bar(progress)
 
     def start_blocklist_update(self, silent=False):
         """ブロックリストの更新処理を開始する"""
@@ -3290,7 +3267,7 @@ class BrowserWindow(QMainWindow):
         self.update_download_dialog.download_finished.connect(self.on_update_download_finished) # ダウンロード完了シグナルを接続
         self.update_download_dialog.start_download(asset_url, save_path)
         self.update_download_dialog.exec()
-
+    
     def on_update_download_finished(self, success, downloaded_path):
         """アップデートファイルのダウンロード完了後の処理"""
         if success:
@@ -3323,7 +3300,7 @@ class BrowserWindow(QMainWindow):
 
         try:
             # packaging.versionを使って堅牢なバージョン比較を行う
-            if latest_version and parse_version(latest_version) > parse_version(__version__):
+            if parse_version(latest_version) > parse_version(__version__):
                 self.show_update_notification(latest_version, release_url, asset_url)
             else:
                 QMessageBox.information(self, "アップデート確認", "お使いのバージョンは最新です。")
@@ -3413,7 +3390,7 @@ def cleanup_before_quit():
 
 def apply_cookie_policy():
     """アプリケーション全体のCookieポリシーを設定から読み込んで適用する"""
-    settings = QSettings("StudioNosa", "EQUA")
+    settings = QSettings(os.path.join(PORTABLE_BASE_PATH, SETTINGS_FILE_NAME), QSettings.Format.IniFormat)
     # 保存されたenumの値を取得。デフォルトはAllowPersistentCookies
     default_policy_value = QWebEngineProfile.PersistentCookiesPolicy.AllowPersistentCookies.value
     policy_value = settings.value("privacy/cookie_policy_value", default_policy_value, type=int)
@@ -3448,7 +3425,7 @@ def apply_application_theme(theme_name):
 
 def apply_tab_position():
     """全ウィンドウのタブ表示位置を更新する"""
-    settings = QSettings("StudioNosa", "EQUA")
+    settings = QSettings(os.path.join(PORTABLE_BASE_PATH, SETTINGS_FILE_NAME), QSettings.Format.IniFormat)
     position_name = settings.value("tab_position", "上")
 
     position_map = {
@@ -3513,7 +3490,7 @@ if __name__ == '__main__':
     apply_cookie_policy() # 設定に基づいてCookieポリシーを適用
 
     # テーマ設定を読み込んで適用
-    current_theme = settings.value("theme", "ダーク")
+    current_theme = settings.value("theme", "自動")
     apply_application_theme(current_theme)
 
     # 作成した永続プロファイルをメインウィンドウに渡して起動します。
