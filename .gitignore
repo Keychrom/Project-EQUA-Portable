@@ -46,3 +46,4 @@ build/equa/localpycs/pyimod04_pywin32.pyc
 build/equa/localpycs/struct.pyc
 dist/equa.exe
 dist/EQUA_Installer.exe
+dist/EQUA-Portable.exe
