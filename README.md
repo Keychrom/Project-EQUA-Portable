@@ -27,7 +27,8 @@ EQUAはStudio NØSaがお届けするプロダクトの第一弾でありNEXAグ
 設定から、「このEQUAについて」をご覧ください
 
 ## 質問がありましたら
-公式サイトにある[Support](https://studio-nosa.live/support.html)をご覧ください
-
+公式サイトにある[Support](https://studio-nosa.live/support.html)をご覧ください。
+また、[Discordサーバー](https://discord.gg/hmmsXv9NR9)にご参加いただくと、より早く返信を受け取れる場合があります。
+Discordサーバーはサポート以外にも雑談とかも出来ます！
 ## アップデートについて
 アップデート機能が0.2.0ポータブル版から対応しました。新しいバージョンが利用可能な場合は通知が表示され、指示に従ってアップデートファイルをダウンロードできます。
