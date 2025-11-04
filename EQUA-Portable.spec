@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['equa.py'],
+    ['equa-copy.py'],
     pathex=[],
     binaries=[],
     datas=[],

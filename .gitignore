@@ -47,3 +47,6 @@ build/equa/localpycs/struct.pyc
 dist/equa.exe
 dist/EQUA_Installer.exe
 dist/EQUA-Portable.exe
+EQUA-Portable.spec
+EQUA-Portable.spec
+settings.ini
